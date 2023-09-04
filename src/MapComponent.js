@@ -12,7 +12,7 @@ const MapComponent = () => {
     const mapRef = useRef(null);
     const [selectedLocation, setSelectedLocation] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
-    
+
 
     const randomLocationNames = [
         'Central Park',
@@ -42,12 +42,12 @@ const MapComponent = () => {
         });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current);
-    
 
-       
 
-       
-        
+
+
+
+
         // Click event to display popover for heatmap points
         // mapRef.current.on('click', (event) => {
         //     if (event.latlng) {
@@ -58,19 +58,19 @@ const MapComponent = () => {
         //             lng: event.latlng.lng,
         //             name: locationName,
         //         };
-        
+
         //         setSelectedLocation(locationData);
         //         setAnchorEl(event.originalEvent.target);
         //     }
         // });
 
-        
+
         const markerLayer = L.layerGroup().addTo(mapRef.current);
 
         const generateRandomMarkers = () => {
             for (let i = 0; i < 5; i++) {
-                const randomLat = 28.6 + Math.random() * 0.1; 
-                const randomLng = 77.2 + Math.random() * 0.1; 
+                const randomLat = 28.6 + Math.random() * 0.1;
+                const randomLng = 77.2 + Math.random() * 0.1;
 
                 const marker = L.marker([randomLat, randomLng], {
                     icon: L.icon({
@@ -113,14 +113,34 @@ const MapComponent = () => {
     //     lat: booth.lat,
     //     lng: booth.long,
     // })) || [];
-    const heatmapCoordinates = HeatmapData[0]?.booths.map((booth) => ([booth.lat, booth.long])) || [];
+    //const heatmapCoordinates = HeatmapData[0]?.booths.map((booth) => ([booth.lat, booth.long ])) || [];
+    const heatmapCoordinates = HeatmapData[0]?.booths.map((booth) => ({
+        lat: booth.lat,
+        lng: booth.long,
+        boothNumber: booth.boothNumber, // Include booth number
+    })) || [];
 
     // Create a heatmap layer using leaflet.heat
     useEffect(() => {
-        const heatmapLayer = L.heatLayer(heatmapCoordinates, { 
-            radius: 50, 
+        const heatmapLayer = L.heatLayer(heatmapCoordinates, {
+            radius: 50,
             gradient
-         }).addTo(mapRef.current);
+        }).addTo(mapRef.current);
+
+
+        const markerLayer = L.layerGroup().addTo(mapRef.current);
+
+        heatmapCoordinates.forEach((point) => {
+            const marker = L.marker([point.lat, point.lng], {
+                icon: L.divIcon({
+                    className: 'custom-popup-icon',
+                    iconSize: [30, 30],
+                }),
+            });
+
+            marker.bindPopup(`Booth Number: ${point.boothNumber}`);
+            marker.addTo(markerLayer);
+        });
 
         return () => {
             heatmapLayer.remove();
@@ -143,7 +163,7 @@ const MapComponent = () => {
                     horizontal: 'center',
                 }}
             >
-                
+
                 {selectedLocation && (
                     <div style={{ padding: '20px', background: 'white' }}>
                         <Typography variant="h6" style={{ color: 'black' }}>
